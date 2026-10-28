@@ -1,5 +1,5 @@
-# Render Blueprint: creates a PostgreSQL database + a web service that
-# auto-deploys from GitHub (Saiful1253/Flight-Booking-System).
+# Render Blueprint: creates a PostgreSQL database + a Docker web service that
+# deploys from GitHub (Saiful1253/Flight-Booking-System).
 databases:
   - name: flight-booking-db
     plan: free
@@ -8,10 +8,8 @@ databases:
 services:
   - type: web
     name: flight-booking-system
-    runtime: dotnet
+    runtime: docker
     plan: free
-    buildCommand: "dotnet publish FlightBookingSystem/FlightBookingSystem.csproj -c Release -o renderbuild"
-    startCommand: "dotnet renderbuild/FlightBookingSystem.dll"
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
