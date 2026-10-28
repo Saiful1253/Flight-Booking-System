@@ -65,7 +65,8 @@ static string GetConnectionString(IConfiguration config)
     var userInfo = uri.UserInfo.Split(':', 2);
     var user = Uri.UnescapeDataString(userInfo[0]);
     var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+    var port = uri.Port > 0 ? uri.Port : 5432; // Uri.Port is -1 when the URL omits the port
 
-    return $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')}" +
+    return $"Host={uri.Host};Port={port};Database={uri.AbsolutePath.TrimStart('/')}" +
            $";Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true";
 }
