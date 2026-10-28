@@ -1,0 +1,60 @@
+@model List<FlightBookingSystem.Models.Booking>
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Duplicate bookings";
+}
+
+<div class="note-box mb-4">
+    <i class="bi bi-lightbulb"></i> <b>How duplicates are detected:</b> when a user books the <b>same flight</b> while an
+    active (pending/confirmed) booking already exists, the system automatically flags the new booking here.
+    You can either <b>clear</b> the flag (both bookings are genuine) or <b>merge</b> (cancel the duplicate and release its seats).
+</div>
+
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-check2-circle"></i>
+            <h5>No duplicate flags</h5>
+            <p class="mb-0">All bookings look unique right now.</p>
+        </div>
+    }
+    else
+    {
+        <table class="table table-clean">
+            <thead>
+                <tr>
+                    <th>PNR</th><th>Client</th><th>Flight</th><th>Original booking</th>
+                    <th>Created</th><th>Status</th><th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    <tr>
+                        <td class="table-title">@b.Pnr</td>
+                        <td>@b.User!.FullName <div class="table-sub">@b.User.Email</div></td>
+                        <td>@b.Flight!.FlightNumber <div class="table-sub">@b.Flight.DepartureAirport!.Code → @b.Flight.ArrivalAirport!.Code</div></td>
+                        <td>
+                            <a asp-action="BookingDetails" asp-route-id="@b.DuplicateOfId">#@b.DuplicateOfId</a>
+                            <div class="table-sub">PNR @b.DuplicateOf?.Pnr</div>
+                        </td>
+                        <td>@b.CreatedAt.ToString("dd MMM, HH:mm")</td>
+                        <td><partial name="_BookingBadge" model="b.Status" /></td>
+                        <td class="text-end text-nowrap">
+                            <form asp-action="ClearDuplicate" asp-route-id="@b.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-soft btn-xs"><i class="bi bi-check2"></i> Not a duplicate</button>
+                            </form>
+                            <form asp-action="MergeDuplicate" asp-route-id="@b.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Merge booking @b.Pnr into #@b.DuplicateOfId? It will be cancelled and seats released.');">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-soft btn-xs text-danger"><i class="bi bi-arrow-left-right"></i> Merge &amp; cancel</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

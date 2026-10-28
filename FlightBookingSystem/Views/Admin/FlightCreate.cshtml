@@ -1,0 +1,99 @@
+@model FlightBookingSystem.Models.Flight
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Add flight";
+    var airlines = (List<Airline>)ViewBag.Airports == null ? new List<Airline>() : (List<Airline>)ViewBag.Airlines;
+    var airports = (List<Airport>)ViewBag.Airports;
+    var airportItems = new SelectList(airports.Select(a => new { a.Id, Label = $"{a.Code} — {a.City}" }), "Id", "Label");
+    var airlineItems = new SelectList(airlines, "Id", "Name");
+}
+
+<div class="card" style="max-width:920px">
+    <div class="card-header"><span><i class="bi bi-airplane"></i> New flight</span></div>
+    <div class="card-body">
+        <form asp-action="FlightCreate" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger small col-12"></div>
+
+            <div class="col-md-3">
+                <label class="form-label">Flight number</label>
+                <input asp-for="FlightNumber" class="form-control" placeholder="BG-147" />
+                <span asp-validation-for="FlightNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Airline</label>
+                <select asp-for="AirlineId" asp-items="airlineItems" class="form-select"></select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">From</label>
+                <select asp-for="DepartureAirportId" asp-items="airportItems" class="form-select"></select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To</label>
+                <select asp-for="ArrivalAirportId" asp-items="airportItems" class="form-select"></select>
+                <span asp-validation-for="ArrivalAirportId" class="text-danger small"></span>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Departure (UTC)</label>
+                <input asp-for="DepartureAt" type="datetime-local" class="form-control" />
+                <span asp-validation-for="DepartureAt" class="text-danger small"></span>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Duration (minutes)</label>
+                <input asp-for="DurationMinutes" type="number" class="form-control" placeholder="55" />
+                <span asp-validation-for="DurationMinutes" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Aircraft type</label>
+                <input asp-for="AircraftType" class="form-control" placeholder="Boeing 737-800" />
+            </div>
+
+            <div class="col-12"><h6 class="fw-bold mt-2">Economy</h6></div>
+            <div class="col-md-3">
+                <label class="form-label">Seats</label>
+                <input asp-for="EconomyTotal" type="number" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Available now</label>
+                <input asp-for="EconomyAvailable" type="number" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Price (BDT)</label>
+                <input asp-for="EconomyPrice" type="number" class="form-control" step="100" />
+            </div>
+
+            <div class="col-12"><h6 class="fw-bold mt-2">Business (0 = no business class)</h6></div>
+            <div class="col-md-3">
+                <label class="form-label">Seats</label>
+                <input asp-for="BusinessTotal" type="number" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Available now</label>
+                <input asp-for="BusinessAvailable" type="number" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Price (BDT)</label>
+                <input asp-for="BusinessPrice" type="number" class="form-control" step="100" />
+            </div>
+
+            <div class="col-12"><h6 class="fw-bold mt-2">First class (0 = no first class)</h6></div>
+            <div class="col-md-3">
+                <label class="form-label">Seats</label>
+                <input asp-for="FirstTotal" type="number" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Available now</label>
+                <input asp-for="FirstAvailable" type="number" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Price (BDT)</label>
+                <input asp-for="FirstPrice" type="number" class="form-control" step="100" />
+            </div>
+
+            <div class="col-12 mt-3">
+                <button class="btn btn-accent"><i class="bi bi-plus-lg"></i> Create flight</button>
+                <a class="btn btn-soft" asp-action="Flights">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

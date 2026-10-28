@@ -1,0 +1,128 @@
+@model List<FlightBookingSystem.ViewModels.FlightResultItem>
+@{
+    ViewData["Title"] = "Flight results";
+    var search = (FlightSearchViewModel)ViewBag.Search;
+    string Money(decimal v) => $"BDT {v:N0}";
+    string Dur(int m) => m >= 60 ? $"{m / 60}h {m % 60:D2}m" : $"{m}m";
+}
+
+<div class="container-fluid px-lg-4 py-4">
+    <div class="filter-bar mb-4">
+        <form asp-controller="Home" asp-action="Search" method="get" class="row g-2 align-items-end">
+            <div class="col-6 col-lg-2">
+                <label class="form-label">From</label>
+                <select name="FromAirportId" asp-items="((SelectList)ViewBag.From)" class="form-select"></select>
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label">To</label>
+                <select name="ToAirportId" asp-items="((SelectList)ViewBag.To)" class="form-select"></select>
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label">Departure</label>
+                <input name="Date" type="date" value="@search.Date.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-4 col-lg-2">
+                <label class="form-label">Passengers</label>
+                <select name="Passengers" class="form-select">
+                    @for (var i = 1; i <= 9; i++)
+                    {
+                        <option value="@i" selected="@(search.Passengers == i)">@i pax</option>
+                    }
+                </select>
+            </div>
+            <div class="col-8 col-lg-2">
+                <label class="form-label">Class</label>
+                <select name="CabinClass" class="form-select">
+                    @foreach (var c in Enum.GetNames<CabinClass>())
+                    {
+                        <option value="@c" selected="@(search.CabinClass.ToString() == c)">@c</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-lg-2">
+                <button type="submit" class="btn-search w-100"><i class="bi bi-search"></i> Search</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h2 class="page-title mb-0">
+                @(search.Airports.FirstOrDefault(a => a.Id == search.FromAirportId)?.City) →
+                @(search.Airports.FirstOrDefault(a => a.Id == search.ToAirportId)?.City)
+            </h2>
+            <div class="section-sub">
+                @search.Date.ToString("ddd, dd MMM yyyy") · @search.Passengers pax · @search.CabinClass class
+                — <b>@Model.Count</b> flight(s) found
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card">
+            <div class="empty-state">
+                <i class="bi bi-airplane-engines"></i>
+                <h5>No flights on this route/date</h5>
+                <p class="mb-0">Try another date or a different cabin class.</p>
+            </div>
+        </div>
+    }
+
+    @foreach (var item in Model)
+    {
+        var f = item.Flight;
+        <div class="flight-card @(item.Available ? "" : "soldout")">
+            <div class="fc-strip" style="background:@f.Airline!.Color"></div>
+            <div class="fc-airline">
+                <div class="al-name">@f.Airline.Name</div>
+                <div class="al-meta">@(f.AircraftType ?? "Standard aircraft")</div>
+                <span class="flight-no"><i class="bi bi-airplane"></i> @f.FlightNumber</span>
+            </div>
+            <div class="fc-route">
+                <div>
+                    <div class="fc-time">@f.DepartureAt.ToString("HH:mm")</div>
+                    <div class="fc-code">@f.DepartureAirport!.Code</div>
+                    <div class="fc-city">@f.DepartureAirport.City</div>
+                </div>
+                <div class="fc-line">
+                    <div class="dur">@Dur(f.DurationMinutes)</div>
+                    <div class="track"><i class="bi bi-airplane"></i></div>
+                    <div class="fc-stop">
+                        @if (f.Status == FlightStatus.Delayed) { <span class="text-danger">Delayed</span> }
+                        else { <span>Non-stop</span> }
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="fc-time">@f.ArrivalAt.ToString("HH:mm")</div>
+                    <div class="fc-code">@f.ArrivalAirport!.Code</div>
+                    <div class="fc-city">@f.ArrivalAirport.City</div>
+                </div>
+            </div>
+            <div class="fc-price">
+                <div class="p">@Money(item.UnitPrice) <small>/ pax</small></div>
+                @if (item.SeatsLeft <= 10 && item.SeatsLeft > 0)
+                {
+                    <div class="seats-left"><i class="bi bi-hourglass-split"></i> Only @item.SeatsLeft seats left</div>
+                }
+                else if (!item.Available)
+                {
+                    <div class="seats-left">Sold out / unavailable</div>
+                }
+                else
+                {
+                    <div class="fc-city">@item.SeatsLeft seats available</div>
+                }
+                @if (item.Available)
+                {
+                    <a class="btn btn-accent btn-sm"
+                       asp-controller="Booking" asp-action="Book" asp-route-id="@f.Id"
+                       asp-route-cls="@search.CabinClass" asp-route-pax="@search.Passengers"
+                       asp-route-from="@search.FromAirportId" asp-route-to="@search.ToAirportId" asp-route-date="@search.Date.ToString("yyyy-MM-dd")">
+                        Select <i class="bi bi-arrow-right"></i>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+</div>

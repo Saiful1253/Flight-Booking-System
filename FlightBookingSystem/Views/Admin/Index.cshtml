@@ -1,0 +1,167 @@
+@model FlightBookingSystem.ViewModels.AdminDashboardViewModel
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Admin dashboard";
+    string Money(decimal v) => $"BDT {v:N0}";
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <span class="stat-icon"><i class="bi bi-journal-check"></i></span>
+            <div><div class="stat-value">@Model.TotalBookings</div><div class="stat-label">Total bookings</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-amber">
+            <span class="stat-icon"><i class="bi bi-hourglass-split"></i></span>
+            <div><div class="stat-value">@Model.PendingApprovals</div><div class="stat-label">Pending approval</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-green">
+            <span class="stat-icon"><i class="bi bi-cash-coin"></i></span>
+            <div><div class="stat-value">@Money(Model.Revenue)</div><div class="stat-label">Confirmed revenue</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-blue">
+            <span class="stat-icon"><i class="bi bi-airplane"></i></span>
+            <div><div class="stat-value">@Model.ActiveFlights</div><div class="stat-label">Active flights</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <span class="stat-icon"><i class="bi bi-people"></i></span>
+            <div><div class="stat-value">@Model.TotalUsers</div><div class="stat-label">Registered clients</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-green">
+            <span class="stat-icon"><i class="bi bi-person-check"></i></span>
+            <div><div class="stat-value">@Model.ConfirmedBookings</div><div class="stat-label">Confirmed bookings</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-blue">
+            <span class="stat-icon"><i class="bi bi-airplane-engines"></i></span>
+            <div><div class="stat-value">@Model.SeatsSold</div><div class="stat-label">Seats sold (active)</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-amber">
+            <span class="stat-icon"><i class="bi bi-files"></i></span>
+            <div><div class="stat-value">@Model.DuplicateFlags</div><div class="stat-label">Duplicate flags</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-7">
+        <div class="card mb-3">
+            <div class="card-header">
+                <span><i class="bi bi-geo-alt"></i> Approval queue — departing soonest first</span>
+                <a class="btn btn-soft btn-xs" asp-action="Bookings" asp-route-status="Pending">View all</a>
+            </div>
+            @if (!Model.PendingQueue.Any())
+            {
+                <div class="empty-state"><i class="bi bi-check2-circle"></i><p class="mb-0">Nothing waiting for approval. Nice work!</p></div>
+            }
+            else
+            {
+                <table class="table table-clean">
+                    <thead><tr><th>PNR</th><th>Client</th><th>Flight</th><th>Departs</th><th>Total</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var b in Model.PendingQueue)
+                        {
+                            <tr>
+                                <td class="table-title">@b.Pnr
+                                    @if (b.DuplicateOfId != null) { <span class="pill-dup ms-1"><i class="bi bi-files"></i> dup</span> }
+                                </td>
+                                <td>@b.User!.FullName <div class="table-sub">@b.User.Email</div></td>
+                                <td>@b.Flight!.FlightNumber <div class="table-sub">@b.Flight.DepartureAirport!.Code → @b.Flight.ArrivalAirport!.Code</div></td>
+                                <td>@b.Flight.DepartureAt.ToString("dd MMM, HH:mm")</td>
+                                <td class="fw-bold">@Money(b.TotalPrice)</td>
+                                <td class="text-end"><a class="btn btn-accent btn-xs" asp-action="BookingDetails" asp-route-id="@b.Id">Review</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-clock-history"></i> Recent bookings</span>
+                <a class="btn btn-soft btn-xs" asp-action="Bookings">All bookings</a>
+            </div>
+            <table class="table table-clean">
+                <thead><tr><th>PNR</th><th>Client</th><th>Route</th><th>Total</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var b in Model.RecentBookings)
+                    {
+                        <tr>
+                            <td class="table-title">@b.Pnr</td>
+                            <td>@b.User!.FullName</td>
+                            <td>@b.Flight!.DepartureAirport!.Code → @b.Flight.ArrivalAirport!.Code <div class="table-sub">@b.Flight.FlightNumber</div></td>
+                            <td>@Money(b.TotalPrice)</td>
+                            <td><partial name="_BookingBadge" model="b.Status" /></td>
+                            <td class="text-end"><a class="btn btn-soft btn-xs" asp-action="BookingDetails" asp-route-id="@b.Id">Open</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-xl-5">
+        <div class="card mb-3">
+            <div class="card-header"><span><i class="bi bi-bar-chart"></i> Bookings / month</span></div>
+            <div class="card-body"><div class="chart-box"><canvas id="bookingsChart"></canvas></div></div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header"><span><i class="bi bi-cash-stack"></i> Revenue / month</span></div>
+            <div class="card-body"><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-airplane-departure"></i> Departing soon</span></div>
+            <div class="card-body">
+                @foreach (var f in Model.DepartingSoon)
+                {
+                    <div class="kv">
+                        <span class="k">@f.DepartureAt.ToString("dd MMM, HH:mm")</span>
+                        <span class="v">
+                            <span class="airline-dot" style="background:@f.Airline!.Color"></span>
+                            @f.FlightNumber · @f.DepartureAirport!.Code → @f.ArrivalAirport!.Code
+                            <div class="table-sub">@f.TotalAvailable / @f.TotalSeats seats free</div>
+                        </span>
+                    </div>
+                }
+                @if (!Model.DepartingSoon.Any()) { <p class="text-muted-2 mb-0">No upcoming flights.</p> }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        const labels = @Html.Raw(ViewBag.ChartLabels);
+        const counts = @Html.Raw(ViewBag.ChartCounts);
+        const revLabels = @Html.Raw(ViewBag.RevenueLabels);
+        const revValues = @Html.Raw(ViewBag.RevenueValues);
+        new Chart(document.getElementById('bookingsChart'), {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Bookings', data: counts, backgroundColor: '#0ea5e9', borderRadius: 8 }] },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        });
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: { labels: revLabels, datasets: [{ label: 'Revenue (BDT)', data: revValues, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.12)', fill: true, tension: .35 }] },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+    </script>
+}

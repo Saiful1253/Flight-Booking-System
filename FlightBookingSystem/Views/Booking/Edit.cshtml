@@ -1,0 +1,94 @@
+@model FlightBookingSystem.ViewModels.BookViewModel
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Update booking";
+    var f = Model.Flight!;
+    int id = (int)ViewBag.BookingId;
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form asp-action="Edit" asp-route-id="@id" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="FlightId" />
+            <input type="hidden" asp-for="CabinClass" />
+            <input type="hidden" asp-for="Passengers" />
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+            <div class="card mb-4">
+                <div class="card-header"><span><i class="bi bi-people"></i> Passenger details</span></div>
+                <div class="card-body">
+                    @for (var i = 0; i < Model.PassengerList.Count; i++)
+                    {
+                        <fieldset class="mb-3 @(i < Model.PassengerList.Count - 1 ? "border-bottom pb-3" : "")">
+                            <legend class="fw-bold small text-uppercase">Passenger @(i + 1)</legend>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="PassengerList[i].FullName" class="form-label"></label>
+                                    <input asp-for="PassengerList[i].FullName" class="form-control" />
+                                    <span asp-validation-for="PassengerList[i].FullName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="PassengerList[i].IdType" class="form-label"></label>
+                                    <select asp-for="PassengerList[i].IdType" asp-items="Html.GetEnumSelectList<IdType>()" class="form-select"></select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="PassengerList[i].IdNumber" class="form-label"></label>
+                                    <input asp-for="PassengerList[i].IdNumber" class="form-control" />
+                                    <span asp-validation-for="PassengerList[i].IdNumber" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="PassengerList[i].Age" class="form-label"></label>
+                                    <input asp-for="PassengerList[i].Age" class="form-control" type="number" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="PassengerList[i].Gender" class="form-label"></label>
+                                    <select asp-for="PassengerList[i].Gender" asp-items="Html.GetEnumSelectList<Gender>()" class="form-select"></select>
+                                </div>
+                            </div>
+                        </fieldset>
+                    }
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header"><span><i class="bi bi-envelope"></i> Contact for this trip</span></div>
+                <div class="card-body row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="ContactEmail" class="form-label"></label>
+                        <input asp-for="ContactEmail" class="form-control" />
+                        <span asp-validation-for="ContactEmail" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ContactPhone" class="form-label"></label>
+                        <input asp-for="ContactPhone" class="form-control" />
+                        <span asp-validation-for="ContactPhone" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-accent"><i class="bi bi-check2"></i> Save changes</button>
+            <a class="btn btn-soft" asp-action="Ticket" asp-route-id="@id">Back to ticket</a>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card booking-summary">
+            <div class="card-header"><span><i class="bi bi-airplane"></i> Flight summary</span></div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="airline-dot" style="background:@f.Airline!.Color"></span>
+                    <div>
+                        <div class="fw-bold">@f.Airline.Name</div>
+                        <div class="table-sub">@f.FlightNumber</div>
+                    </div>
+                </div>
+                <div class="route-big mb-1">@f.DepartureAirport!.Code → @f.ArrivalAirport!.Code</div>
+                <div class="section-sub mb-3">@f.DepartureAt.ToString("ddd, dd MMM yyyy, HH:mm")</div>
+                <div class="kv"><span class="k">Cabin class</span><span class="v">@Model.CabinClass</span></div>
+                <div class="kv"><span class="k">Passengers</span><span class="v">@Model.Passengers</span></div>
+                <div class="note-box mt-3"><i class="bi bi-info-circle"></i> Seats and fare stay the same — only details are updated.</div>
+            </div>
+        </div>
+    </div>
+</div>

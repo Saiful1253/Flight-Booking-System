@@ -1,0 +1,76 @@
+@model List<FlightBookingSystem.Models.Flight>
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Flight inventory";
+    var current = ViewBag.StatusFilter as string;
+    string Money(decimal v) => $"BDT {v:N0}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-sm @(current == null ? "btn-accent" : "btn-soft")" asp-action="Flights">All</a>
+        @foreach (var s in Enum.GetNames<FlightStatus>())
+        {
+            <a class="btn btn-sm @(current == s ? "btn-accent" : "btn-soft")" asp-action="Flights" asp-route-status="@s">@s</a>
+        }
+    </div>
+    <a class="btn btn-accent btn-sm" asp-action="FlightCreate"><i class="bi bi-plus-lg"></i> Add flight</a>
+</div>
+
+<div class="filter-bar mb-3">
+    <form asp-action="Flights" method="get" class="row g-2 align-items-end">
+        <input type="hidden" name="status" value="@current" />
+        <div class="col-md-6">
+            <label class="form-label">Search</label>
+            <input name="q" value="@ViewBag.Query" class="form-control" placeholder="Flight number, airline or city" />
+        </div>
+        <div class="col-md-4"><button class="btn btn-accent"><i class="bi bi-funnel"></i> Filter</button>
+            <a class="btn btn-soft" asp-action="Flights">Reset</a></div>
+    </form>
+</div>
+
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-airplane"></i><h5>No flights found</h5><p>Add a flight to start selling seats.</p></div>
+    }
+    else
+    {
+        <table class="table table-clean">
+            <thead>
+                <tr>
+                    <th>Flight</th><th>Airline</th><th>Route</th><th>Departure</th><th>Duration</th>
+                    <th>Economy</th><th>Business</th><th>First</th><th>Status</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in Model)
+                {
+                    <tr>
+                        <td class="table-title">@f.FlightNumber <div class="table-sub">@(f.AircraftType ?? "")</div></td>
+                        <td><span class="airline-dot" style="background:@f.Airline!.Color"></span>@f.Airline.Name</td>
+                        <td>@f.DepartureAirport!.Code → @f.ArrivalAirport!.Code <div class="table-sub">@f.DepartureAirport.City → @f.ArrivalAirport.City</div></td>
+                        <td>@f.DepartureAt.ToString("dd MMM yyyy, HH:mm")</td>
+                        <td>@(f.DurationMinutes >= 60 ? $"{f.DurationMinutes / 60}h {f.DurationMinutes % 60:D2}m" : $"{f.DurationMinutes}m")</td>
+                        <td>@f.EconomyAvailable/@f.EconomyTotal <div class="table-sub">@Money(f.EconomyPrice)</div></td>
+                        <td>@f.BusinessAvailable/@f.BusinessTotal <div class="table-sub">@(f.BusinessPrice > 0 ? Money(f.BusinessPrice) : "—")</div></td>
+                        <td>@f.FirstAvailable/@f.FirstTotal <div class="table-sub">@(f.FirstPrice > 0 ? Money(f.FirstPrice) : "—")</div></td>
+                        <td>
+                            <span class="badge-status @(f.Status == FlightStatus.Scheduled ? "bk-confirmed" : f.Status == FlightStatus.Delayed ? "bk-pending" : "bk-cancelled")">
+                                <i class="bi bi-circle"></i> @f.Status
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-soft btn-xs" asp-action="FlightEdit" asp-route-id="@f.Id"><i class="bi bi-pencil"></i> Edit</a>
+                            <form asp-action="FlightDelete" asp-route-id="@f.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Delete flight @f.FlightNumber?');">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-soft btn-xs text-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -1,0 +1,53 @@
+@model List<FlightBookingSystem.Models.User>
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Users";
+    var counts = (Dictionary<int, int>)ViewBag.Counts;
+}
+
+<div class="card">
+    <div class="card-header"><span><i class="bi bi-people"></i> All users (@Model.Count)</span></div>
+    <table class="table table-clean">
+        <thead>
+            <tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Bookings</th><th>Joined</th><th>Status</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model)
+            {
+                <tr class="@(u.IsActive ? "" : "table-secondary")">
+                    <td class="table-title">@u.FullName</td>
+                    <td>@u.Email</td>
+                    <td>@(u.Phone ?? "—")</td>
+                    <td>
+                        <span class="cls-chip @(u.Role == UserRole.Admin ? "business" : "")">
+                            <i class="bi @(u.Role == UserRole.Admin ? "bi-shield-lock" : "bi-person")"></i> @u.Role
+                        </span>
+                    </td>
+                    <td>@counts.GetValueOrDefault(u.Id)</td>
+                    <td>@u.CreatedAt.ToString("dd MMM yyyy")</td>
+                    <td>
+                        <span class="badge-status @(u.IsActive ? "bk-confirmed" : "bk-cancelled")">
+                            <i class="bi bi-circle"></i> @(u.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <form asp-action="ToggleActive" asp-route-id="@u.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-soft btn-xs">@(u.IsActive ? "Deactivate" : "Activate")</button>
+                        </form>
+                        <form asp-action="ToggleRole" asp-route-id="@u.Id" method="post" class="d-inline"
+                              onsubmit="return confirm('Change role for @u.FullName?');">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-soft btn-xs">@(u.Role == UserRole.Admin ? "Make client" : "Make admin")</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="note-box mt-3">
+    <i class="bi bi-info-circle"></i> Admins see the full management panel. Clients get the travel dashboard with
+    search, booking, e-ticket and cancellation.
+</div>

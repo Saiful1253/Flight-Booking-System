@@ -1,0 +1,116 @@
+@model FlightBookingSystem.ViewModels.ReportsViewModel
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Reports";
+    string Money(decimal v) => $"BDT {v:N0}";
+    string Pbtn(int d) => Model.Days == d ? "btn-accent" : "btn-soft";
+}
+
+<div class="d-flex gap-2 flex-wrap mb-3">
+    <a class="btn btn-sm @Pbtn(7)" asp-action="Reports" asp-route-days="7">Last 7 days</a>
+    <a class="btn btn-sm @Pbtn(30)" asp-action="Reports" asp-route-days="30">Last 30 days</a>
+    <a class="btn btn-sm @Pbtn(90)" asp-action="Reports" asp-route-days="90">Last 90 days</a>
+    <a class="btn btn-sm @Pbtn(365)" asp-action="Reports" asp-route-days="365">Last year</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card"><span class="stat-icon"><i class="bi bi-journal-check"></i></span>
+            <div><div class="stat-value">@Model.TotalBookings</div><div class="stat-label">Bookings</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card tone-green"><span class="stat-icon"><i class="bi bi-patch-check"></i></span>
+            <div><div class="stat-value">@Model.Confirmed</div><div class="stat-label">Confirmed</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card tone-amber"><span class="stat-icon"><i class="bi bi-cash-coin"></i></span>
+            <div><div class="stat-value">@Money(Model.Revenue)</div><div class="stat-label">Revenue</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card tone-blue"><span class="stat-icon"><i class="bi bi-airplane-engines"></i></span>
+            <div><div class="stat-value">@Model.SeatsSold</div><div class="stat-label">Seats sold</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card tone-purple"><span class="stat-icon"><i class="bi bi-graph-up"></i></span>
+            <div><div class="stat-value">@Model.AvgOccupancy%</div><div class="stat-label">Avg occupancy</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="stat-card"><span class="stat-icon"><i class="bi bi-slash-circle"></i></span>
+            <div><div class="stat-value">@(Model.Cancelled + Model.Rejected)</div><div class="stat-label">Closed / rejected</div></div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header"><span><i class="bi bi-buildings"></i> Confirmed bookings by airline</span></div>
+            @if (!Model.ByAirline.Any())
+            {
+                <div class="empty-state"><p class="mb-0">No confirmed bookings in this period.</p></div>
+            }
+            else
+            {
+                <table class="table table-clean">
+                    <thead><tr><th>Airline</th><th>Bookings</th><th>Revenue</th></tr></thead>
+                    <tbody>
+                        @foreach (var row in Model.ByAirline)
+                        {
+                            <tr><td class="table-title">@row.Label</td><td>@row.Count</td><td class="fw-bold">@Money(row.Revenue)</td></tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-signpost"></i> Top routes (confirmed)</span></div>
+            @if (!Model.ByRoute.Any())
+            {
+                <div class="empty-state"><p class="mb-0">No route data yet.</p></div>
+            }
+            else
+            {
+                <table class="table table-clean">
+                    <thead><tr><th>Route</th><th>Bookings</th></tr></thead>
+                    <tbody>
+                        @foreach (var row in Model.ByRoute)
+                        {
+                            <tr><td class="table-title">@row.Label</td><td>@row.Count</td></tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header"><span><i class="bi bi-person-lines-fill"></i> Bookings by cabin class</span></div>
+            <table class="table table-clean">
+                <thead><tr><th>Class</th><th>Bookings</th></tr></thead>
+                <tbody>
+                    @foreach (var row in Model.ByClass)
+                    {
+                        <tr><td class="table-title">@row.Label</td><td>@row.Count</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-clock-history"></i> Latest system activity</span></div>
+            <div class="card-body">
+                <ul class="timeline">
+                    @foreach (var l in Model.RecentActivity)
+                    {
+                        <li class="done">
+                            <div class="t-action">@l.Action</div>
+                            <div class="t-detail">@l.Details</div>
+                            <div class="t-time">@l.CreatedAt.ToString("dd MMM, HH:mm") · @(l.User?.FullName ?? "System")</div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

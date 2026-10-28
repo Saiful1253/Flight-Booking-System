@@ -1,0 +1,70 @@
+@model FlightBookingSystem.ViewModels.RegisterViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Create account";
+    ViewData["AuthRole"] = "client";
+    ViewData["AuthTitle"] = "Start flying with us";
+    ViewData["AuthSub"] = "Create a free account to book flights, track bookings and manage your trips.";
+}
+
+<div class="auth-head">
+    <span class="auth-eyebrow">Traveller portal</span>
+    <h1>Create your account</h1>
+    <p class="auth-sub">It takes less than a minute — then you are ready to fly.</p>
+</div>
+
+<form asp-action="Register" method="post" id="authForm">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="alert-validation"></div>
+
+    <div class="f-field">
+        <i class="bi bi-person"></i>
+        <input asp-for="FullName" placeholder=" " autocomplete="name" autofocus />
+        <label asp-for="FullName">Full name</label>
+    </div>
+    <span asp-validation-for="FullName" class="field-err"></span>
+
+    <div class="f-field">
+        <i class="bi bi-envelope"></i>
+        <input asp-for="Email" placeholder=" " autocomplete="email" />
+        <label asp-for="Email">Email address</label>
+    </div>
+    <span asp-validation-for="Email" class="field-err"></span>
+
+    <div class="f-field">
+        <i class="bi bi-phone"></i>
+        <input asp-for="Phone" placeholder=" " autocomplete="tel" />
+        <label asp-for="Phone">Phone number</label>
+    </div>
+    <span asp-validation-for="Phone" class="field-err"></span>
+
+    <div class="row g-0 two-col">
+        <div class="col">
+            <div class="f-field">
+                <i class="bi bi-lock"></i>
+                <input asp-for="Password" placeholder=" " type="password" autocomplete="new-password" />
+                <label asp-for="Password">Password</label>
+                <button type="button" class="pw-toggle" aria-label="Show password"><i class="bi bi-eye"></i></button>
+            </div>
+            <span asp-validation-for="Password" class="field-err"></span>
+        </div>
+        <div class="col">
+            <div class="f-field">
+                <i class="bi bi-lock"></i>
+                <input asp-for="ConfirmPassword" placeholder=" " type="password" autocomplete="new-password" />
+                <label asp-for="ConfirmPassword">Confirm</label>
+                <button type="button" class="pw-toggle" aria-label="Show password"><i class="bi bi-eye"></i></button>
+            </div>
+            <span asp-validation-for="ConfirmPassword" class="field-err"></span>
+        </div>
+    </div>
+
+    <button type="submit" class="btn-portal">
+        <span class="bp-label"><i class="bi bi-person-plus"></i> Create account</span>
+        <span class="bp-spinner spinner-border spinner-border-sm" role="status"></span>
+    </button>
+
+    <p class="auth-alt">Already registered? <a asp-action="Login">Sign in</a></p>
+    <p class="auth-note"><i class="bi bi-info-circle"></i> Staff accounts are issued by administrators — travellers register here.</p>
+</form>

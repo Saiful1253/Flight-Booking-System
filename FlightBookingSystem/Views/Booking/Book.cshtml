@@ -1,0 +1,149 @@
+@model FlightBookingSystem.ViewModels.BookViewModel
+@{
+    ViewData["Title"] = "Complete your booking";
+    var f = Model.Flight!;
+    string Money(decimal v) => $"BDT {v:N0}";
+    string Dur(int m) => m >= 60 ? $"{m / 60}h {m % 60:D2}m" : $"{m}m";
+}
+
+<div class="container py-4">
+    <nav class="small text-muted-2 mb-3">
+        <a asp-controller="Home" asp-action="Index">Search</a> / Booking / <b>@f.FlightNumber</b>
+    </nav>
+
+    <form asp-controller="Booking" asp-action="Book" method="post" class="row g-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="FlightId" />
+        <input type="hidden" asp-for="CabinClass" />
+        <input type="hidden" asp-for="Passengers" />
+        @if (ViewBag.From != null) { <input type="hidden" name="from" value="@ViewBag.From" /> }
+        @if (ViewBag.To != null) { <input type="hidden" name="to" value="@ViewBag.To" /> }
+        @if (ViewBag.Date != null) { <input type="hidden" name="date" value="@(((DateTime)ViewBag.Date).ToString("yyyy-MM-dd"))" /> }
+
+        <div class="col-lg-7">
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+            <div class="card mb-4">
+                <div class="card-header"><span><i class="bi bi-people"></i> Passenger details (@Model.Passengers)</span></div>
+                <div class="card-body">
+                    @for (var i = 0; i < Model.PassengerList.Count; i++)
+                    {
+                        <fieldset class="mb-4 @(i < Model.PassengerList.Count - 1 ? "border-bottom pb-3" : "")">
+                            <legend class="fw-bold small text-uppercase @(i == 0 ? "" : "mt-3")">Passenger @(i + 1)</legend>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="PassengerList[i].FullName" class="form-label"></label>
+                                    <input asp-for="PassengerList[i].FullName" class="form-control" placeholder="Name as on ID" />
+                                    <span asp-validation-for="PassengerList[i].FullName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="PassengerList[i].IdType" class="form-label"></label>
+                                    <select asp-for="PassengerList[i].IdType" asp-items="Html.GetEnumSelectList<IdType>()" class="form-select"></select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label asp-for="PassengerList[i].IdNumber" class="form-label"></label>
+                                    <input asp-for="PassengerList[i].IdNumber" class="form-control" placeholder="ID / Passport no" />
+                                    <span asp-validation-for="PassengerList[i].IdNumber" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="PassengerList[i].Age" class="form-label"></label>
+                                    <input asp-for="PassengerList[i].Age" class="form-control" type="number" min="1" max="120" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="PassengerList[i].Gender" class="form-label"></label>
+                                    <select asp-for="PassengerList[i].Gender" asp-items="Html.GetEnumSelectList<Gender>()" class="form-select"></select>
+                                </div>
+                            </div>
+                        </fieldset>
+                    }
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header"><span><i class="bi bi-credit-card"></i> Payment (demo — no real charge)</span></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ContactEmail" class="form-label"></label>
+                            <input asp-for="ContactEmail" class="form-control" />
+                            <span asp-validation-for="ContactEmail" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ContactPhone" class="form-label"></label>
+                            <input asp-for="ContactPhone" class="form-control" />
+                            <span asp-validation-for="ContactPhone" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SeatPreference" class="form-label"></label>
+                            <select asp-for="SeatPreference" class="form-select">
+                                <option value="A">A — Window</option>
+                                <option value="B">B — Middle</option>
+                                <option value="C">C — Aisle</option>
+                                <option value="D">D — Aisle</option>
+                                <option value="E">E — Middle</option>
+                                <option value="F">F — Window</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CardName" class="form-label"></label>
+                            <input asp-for="CardName" class="form-control" placeholder="Name on card" />
+                            <span asp-validation-for="CardName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CardNumber" class="form-label"></label>
+                            <input asp-for="CardNumber" class="form-control" placeholder="4242 4242 4242 4242" maxlength="19" />
+                            <span asp-validation-for="CardNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-3">
+                            <label asp-for="Expiry" class="form-label"></label>
+                            <input asp-for="Expiry" class="form-control" placeholder="MM/YY" maxlength="5" />
+                            <span asp-validation-for="Expiry" class="text-danger small"></span>
+                        </div>
+                        <div class="col-3">
+                            <label asp-for="Cvv" class="form-label"></label>
+                            <input asp-for="Cvv" class="form-control" placeholder="123" maxlength="4" />
+                            <span asp-validation-for="Cvv" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="note-box mt-3">
+                        <i class="bi bi-info-circle"></i> This is a demo checkout. Booking stays <b>Pending</b> until the
+                        admin verifies it — you can track everything from <b>My bookings</b>.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card booking-summary">
+                <div class="card-header"><span><i class="bi bi-airplane"></i> Your flight</span></div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="airline-dot" style="background:@f.Airline!.Color"></span>
+                        <div>
+                            <div class="fw-bold">@f.Airline.Name</div>
+                            <div class="table-sub">@f.FlightNumber · @(f.AircraftType ?? "Standard")</div>
+                        </div>
+                    </div>
+                    <div class="route-big mb-1">@f.DepartureAirport!.Code → @f.ArrivalAirport!.Code</div>
+                    <div class="section-sub mb-3">
+                        @f.DepartureAt.ToString("ddd, dd MMM yyyy") · @Dur(f.DurationMinutes) · Non-stop
+                    </div>
+                    <div class="kv"><span class="k">Departs</span><span class="v">@f.DepartureAt.ToString("HH:mm") — @f.DepartureAirport.City</span></div>
+                    <div class="kv"><span class="k">Arrives</span><span class="v">@f.ArrivalAt.ToString("HH:mm") — @f.ArrivalAirport!.City</span></div>
+                    <div class="kv"><span class="k">Cabin class</span><span class="v">@Model.CabinClass</span></div>
+                    <div class="kv"><span class="k">Passengers</span><span class="v">@Model.Passengers</span></div>
+
+                    <div class="mt-3">
+                        <div class="price-line"><span>Fare × @Model.Passengers</span><span>@Money(Model.UnitPrice * Model.Passengers)</span></div>
+                        <div class="price-line"><span>Taxes &amp; fees</span><span>Included</span></div>
+                        <div class="price-total"><span>Total</span><span>@Money(Model.TotalPrice)</span></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-accent w-100 mt-3 py-2">
+                        <i class="bi bi-lock"></i> Confirm booking — @Money(Model.TotalPrice)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

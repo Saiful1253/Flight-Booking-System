@@ -1,0 +1,77 @@
+@model List<FlightBookingSystem.Models.Booking>
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Bookings";
+    var current = ViewBag.StatusFilter as string;
+    string cls(string? s) => current == s ? "btn-accent" : "btn-soft";
+}
+
+<div class="d-flex gap-2 flex-wrap mb-3">
+    <a class="btn btn-sm @cls(null)" asp-action="Bookings">All</a>
+    <a class="btn btn-sm @cls("Pending")" asp-action="Bookings" asp-route-status="Pending">Pending</a>
+    <a class="btn btn-sm @cls("Confirmed")" asp-action="Bookings" asp-route-status="Confirmed">Confirmed</a>
+    <a class="btn btn-sm @cls("Rejected")" asp-action="Bookings" asp-route-status="Rejected">Rejected</a>
+    <a class="btn btn-sm @cls("Cancelled")" asp-action="Bookings" asp-route-status="Cancelled">Cancelled</a>
+</div>
+
+<div class="filter-bar mb-3">
+    <form asp-action="Bookings" method="get" class="row g-2 align-items-end">
+        <input type="hidden" name="status" value="@current" />
+        <div class="col-md-4">
+            <label class="form-label">Search</label>
+            <input name="q" value="@ViewBag.Query" class="form-control" placeholder="PNR, passenger name or flight number" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Cabin class</label>
+            <select name="cls" class="form-select" data-autosubmit>
+                <option value="">All classes</option>
+                @foreach (var c in Enum.GetNames<CabinClass>())
+                {
+                    <option value="@c" selected="@(ViewBag.ClassFilter as string == c)">@c</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-accent" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+            <a class="btn btn-soft" asp-action="Bookings">Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-journal-x"></i><h5>No bookings match</h5><p>Try another filter.</p></div>
+    }
+    else
+    {
+        <table class="table table-clean">
+            <thead>
+                <tr>
+                    <th>PNR</th><th>Client</th><th>Flight</th><th>Route</th><th>Departs</th>
+                    <th>Class</th><th>Pax</th><th>Total</th><th>Status</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    var f = b.Flight!;
+                    <tr>
+                        <td class="table-title">@b.Pnr
+                            @if (b.DuplicateOfId != null) { <span class="pill-dup ms-1"><i class="bi bi-files"></i> dup of #@b.DuplicateOfId</span> }
+                        </td>
+                        <td>@b.User!.FullName <div class="table-sub">@b.User.Email</div></td>
+                        <td>@f.FlightNumber <div class="table-sub">@f.Airline!.Name</div></td>
+                        <td>@f.DepartureAirport!.Code → @f.ArrivalAirport!.Code</td>
+                        <td>@f.DepartureAt.ToString("dd MMM, HH:mm")</td>
+                        <td><span class="cls-chip @b.CabinClass.ToString().ToLower()">@b.CabinClass</span></td>
+                        <td>@b.PassengerCount</td>
+                        <td class="fw-bold">BDT @b.TotalPrice.ToString("N0")</td>
+                        <td><partial name="_BookingBadge" model="b.Status" /></td>
+                        <td class="text-end"><a class="btn btn-soft btn-xs" asp-action="BookingDetails" asp-route-id="@b.Id">Manage</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

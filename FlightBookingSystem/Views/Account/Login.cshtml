@@ -1,0 +1,67 @@
+@model FlightBookingSystem.ViewModels.LoginViewModel
+@{
+    Layout = "_AuthLayout";
+    var portal = ((string?)ViewData["AuthRole"]) ?? "client";
+    ViewData["Title"] = "Sign in";
+    ViewData["AuthRole"] = portal;
+    ViewData["AuthTitle"] = portal == "admin" ? "Staff operations portal" : "Your journey starts here";
+    ViewData["AuthSub"] = portal == "admin"
+        ? "Verify bookings, manage flight inventory and monitor every activity on FlyLocal."
+        : "Sign in to search flights, manage bookings and download your e-tickets.";
+}
+
+<div class="auth-head">
+    <span class="auth-eyebrow" id="portalEyebrow">Traveller portal</span>
+    <h1 id="authHeading">Welcome back</h1>
+    <p class="auth-sub">Sign in to continue to your FlyLocal account</p>
+</div>
+
+<div class="portal-switch" role="tablist" aria-label="Choose portal">
+    <span class="ps-pill" aria-hidden="true"></span>
+    <button type="button" class="ps-btn" data-portal="client" role="tab" aria-selected="false">
+        <i class="bi bi-suitcase-rolling"></i> Traveller
+    </button>
+    <button type="button" class="ps-btn" data-portal="admin" role="tab" aria-selected="false">
+        <i class="bi bi-shield-lock"></i> Staff
+    </button>
+</div>
+
+<form asp-action="Login" method="post" id="authForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+    <input type="hidden" name="portal" id="portalField" value="@portal" />
+
+    <div asp-validation-summary="ModelOnly" class="alert-validation"></div>
+
+    <div class="f-field">
+        <i class="bi bi-envelope"></i>
+        <input asp-for="Email" placeholder=" " autocomplete="username" autofocus />
+        <label asp-for="Email">Email address</label>
+    </div>
+    <span asp-validation-for="Email" class="field-err"></span>
+
+    <div class="f-field">
+        <i class="bi bi-lock"></i>
+        <input asp-for="Password" placeholder=" " type="password" autocomplete="current-password" />
+        <label asp-for="Password">Password</label>
+        <button type="button" class="pw-toggle" aria-label="Show password"><i class="bi bi-eye"></i></button>
+    </div>
+    <span asp-validation-for="Password" class="field-err"></span>
+
+    <button type="submit" class="btn-portal">
+        <span class="bp-label"><i class="bi bi-box-arrow-in-right"></i> Sign in</span>
+        <span class="bp-spinner spinner-border spinner-border-sm" role="status"></span>
+    </button>
+
+    <div class="demo-chips">
+        <span class="dc-label"><i class="bi bi-lightning-charge-fill"></i> Quick fill</span>
+        <button type="button" class="chip" data-for="client" data-email="client@flylocal.local" data-pass="Client@123">
+            <i class="bi bi-person"></i> Traveller demo
+        </button>
+        <button type="button" class="chip" data-for="admin" data-email="admin@flylocal.local" data-pass="Admin@123">
+            <i class="bi bi-person-badge"></i> Staff demo
+        </button>
+    </div>
+
+    <p class="auth-alt">New to FlyLocal? <a asp-action="Register">Create an account</a></p>
+</form>

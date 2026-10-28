@@ -1,0 +1,12 @@
+.vs/
+**/bin/
+**/obj/
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Production.json
+*.user
+*.suo
+.playwright-mcp/
+.vscode/console-*.log
+.vscode/page-*.yml
+.vscode/page-*.png

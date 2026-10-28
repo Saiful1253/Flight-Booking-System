@@ -1,0 +1,18 @@
+@model FlightBookingSystem.Models.BookingStatus
+@{
+    var css = Model switch
+    {
+        BookingStatus.Pending => "bk-pending",
+        BookingStatus.Confirmed => "bk-confirmed",
+        BookingStatus.Rejected => "bk-rejected",
+        _ => "bk-cancelled"
+    };
+    var icon = Model switch
+    {
+        BookingStatus.Pending => "bi-hourglass-split",
+        BookingStatus.Confirmed => "bi-patch-check-fill",
+        BookingStatus.Rejected => "bi-x-octagon-fill",
+        _ => "bi-slash-circle"
+    };
+}
+<span class="badge-status @css"><i class="bi @icon"></i> @Model.ToString()</span>

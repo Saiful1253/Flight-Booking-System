@@ -1,0 +1,85 @@
+@model List<FlightBookingSystem.Models.Airport>
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Airports";
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-plus-lg"></i> Add airport</span></div>
+            <div class="card-body">
+                <form asp-action="AirportSave" method="post" class="row g-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" value="0" />
+                    <div class="col-6">
+                        <label class="form-label">IATA code</label>
+                        <input name="Code" class="form-control" maxlength="5" placeholder="DAC" required />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Currency</label>
+                        <input name="Currency" class="form-control" maxlength="3" placeholder="BDT" value="BDT" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Airport name</label>
+                        <input name="Name" class="form-control" placeholder="Hazrat Shahjalal International Airport" required />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">City</label>
+                        <input name="City" class="form-control" placeholder="Dhaka" required />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Country</label>
+                        <input name="Country" class="form-control" placeholder="Bangladesh" required />
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-accent w-100"><i class="bi bi-check2"></i> Add airport</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-signpost-2"></i> All airports (@Model.Count)</span></div>
+            @if (!Model.Any())
+            {
+                <div class="empty-state"><i class="bi bi-signpost-2"></i><p class="mb-0">No airports yet.</p></div>
+            }
+            else
+            {
+                <table class="table table-clean">
+                    <thead><tr><th>Code</th><th>Airport</th><th>City</th><th>Country</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        @foreach (var a in Model)
+                        {
+                            <tr>
+                                <td colspan="5" class="p-2">
+                                    <form asp-action="AirportSave" method="post" class="row g-2 align-items-end">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="Id" value="@a.Id" />
+                                        <div class="col-6 col-md-1"><label class="form-label small">Code</label>
+                                            <input name="Code" value="@a.Code" maxlength="5" class="form-control form-control-sm" required /></div>
+                                        <div class="col-12 col-md-4"><label class="form-label small">Airport name</label>
+                                            <input name="Name" value="@a.Name" class="form-control form-control-sm" required /></div>
+                                        <div class="col-6 col-md-2"><label class="form-label small">City</label>
+                                            <input name="City" value="@a.City" class="form-control form-control-sm" required /></div>
+                                        <div class="col-6 col-md-2"><label class="form-label small">Country</label>
+                                            <input name="Country" value="@a.Country" class="form-control form-control-sm" required /></div>
+                                        <div class="col-6 col-md-1"><label class="form-label small">Cur.</label>
+                                            <input name="Currency" value="@a.Currency" maxlength="3" class="form-control form-control-sm" /></div>
+                                        <div class="col-12 col-md-2 text-end">
+                                            <button class="btn btn-soft btn-xs"><i class="bi bi-check2"></i> Save</button>
+                                            <button type="button" class="btn btn-soft btn-xs text-danger" onclick="this.closest('form').submit();"><i class="bi bi-archive"></i></button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

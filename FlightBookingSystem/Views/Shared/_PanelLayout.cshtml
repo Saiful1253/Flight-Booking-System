@@ -1,0 +1,106 @@
+@{
+    var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+    var page = (ViewContext.RouteData.Values["action"]?.ToString() ?? "");
+    string Active(params string[] actions) => actions.Contains(page) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - FlyLocal Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+</head>
+<body>
+<div class="app-shell">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="brand-icon"><i class="bi bi-airplane-engines-fill"></i></span>
+            <span class="brand-name">FlyLocal<span class="brand-sub">@(isAdmin ? "Admin Panel" : "My Travel")</span></span>
+        </div>
+
+        @if (isAdmin)
+        {
+            <div class="nav-section">Overview</div>
+            <nav class="side-nav">
+                <a class="@Active("Index")" asp-controller="Admin" asp-action="Index"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a class="@Active("Reports")" asp-controller="Admin" asp-action="Reports"><i class="bi bi-bar-chart-line"></i> Reports</a>
+            </nav>
+            <div class="nav-section">Operations</div>
+            <nav class="side-nav">
+                <a class="@Active("Bookings","BookingDetails")" asp-controller="Admin" asp-action="Bookings"><i class="bi bi-journal-check"></i> Bookings</a>
+                <a class="@Active("Duplicates")" asp-controller="Admin" asp-action="Duplicates"><i class="bi bi-files"></i> Duplicates</a>
+                <a class="@Active("Flights","FlightCreate","FlightEdit")" asp-controller="Admin" asp-action="Flights"><i class="bi bi-airplane"></i> Flight Inventory</a>
+                <a class="@Active("Airlines")" asp-controller="Admin" asp-action="Airlines"><i class="bi bi-buildings"></i> Airlines</a>
+                <a class="@Active("Airports")" asp-controller="Admin" asp-action="Airports"><i class="bi bi-signpost-2"></i> Airports</a>
+            </nav>
+            <div class="nav-section">System</div>
+            <nav class="side-nav">
+                <a class="@Active("Users")" asp-controller="Admin" asp-action="Users"><i class="bi bi-people"></i> Users</a>
+                <a class="@Active("Logs")" asp-controller="Admin" asp-action="Logs"><i class="bi bi-clock-history"></i> Activity Logs</a>
+            </nav>
+        }
+        else
+        {
+            <div class="nav-section">My travel</div>
+            <nav class="side-nav">
+                <a class="@Active("Index")" asp-controller="Client" asp-action="Index"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a class="@Active("Search")" asp-controller="Home" asp-action="Index"><i class="bi bi-search"></i> Search flights</a>
+                <a class="@Active("MyBookings","Ticket","Book","Edit")" asp-controller="Booking" asp-action="MyBookings"><i class="bi bi-ticket-perforated"></i> My bookings</a>
+            </nav>
+        }
+
+        <div class="sidebar-footer">
+            <div class="user-chip">
+                <span class="avatar">@((User.Identity?.Name ?? "U").Substring(0, 1).ToUpper())</span>
+                <span>
+                    <span class="name">@User.Identity?.Name</span>
+                    <span class="role">@(isAdmin ? "Administrator" : "Client")</span>
+                </span>
+            </div>
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-logout"><i class="bi bi-box-arrow-right"></i> Sign out</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="topbar">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Toggle navigation" aria-expanded="false">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="text-truncate">@(ViewData["Title"] ?? "Dashboard")</h1>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a class="btn btn-soft btn-sm" asp-controller="Home" asp-action="Index"><i class="bi bi-globe2"></i> Public site</a>
+            </div>
+        </header>
+
+        <div class="content">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert-app ok"><i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert-app err"><i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+            @RenderBody()
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

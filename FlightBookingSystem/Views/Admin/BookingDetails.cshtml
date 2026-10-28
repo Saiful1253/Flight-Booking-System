@@ -1,0 +1,128 @@
+@model FlightBookingSystem.Models.Booking
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = $"Booking {Model.Pnr}";
+    var f = Model.Flight!;
+    var logs = (List<FlightBookingSystem.Models.ActivityLog>)ViewBag.Logs;
+    string Money(decimal v) => $"BDT {v:N0}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <a class="btn btn-soft btn-sm" asp-action="Bookings"><i class="bi bi-arrow-left"></i> Back to bookings</a>
+    <partial name="_BookingBadge" model="Model.Status" />
+</div>
+
+@if (Model.DuplicateOfId != null)
+{
+    <div class="alert-app err">
+        <i class="bi bi-files"></i>
+        Possible duplicate — same user already has booking <b>#@Model.DuplicateOfId</b> (PNR @Model.DuplicateOf?.Pnr)
+        on the same flight. Review before approving.
+    </div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card mb-3">
+            <div class="card-header"><span><i class="bi bi-airplane"></i> Flight &amp; booking</span></div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="airline-dot" style="background:@f.Airline!.Color"></span>
+                    <div>
+                        <div class="fw-bold">@f.Airline.Name</div>
+                        <div class="table-sub">@f.FlightNumber · @(f.AircraftType ?? "Standard") · @f.Status</div>
+                    </div>
+                </div>
+                <div class="route-big mb-1">@f.DepartureAirport!.Code → @f.ArrivalAirport!.Code</div>
+                <div class="section-sub mb-3">@f.DepartureAt.ToString("ddd, dd MMM yyyy, HH:mm") → @f.ArrivalAt.ToString("HH:mm")</div>
+                <div class="kv"><span class="k">Client</span><span class="v">@Model.User!.FullName — @Model.User.Email @(Model.User.Phone ?? "")</span></div>
+                <div class="kv"><span class="k">Contact</span><span class="v">@Model.ContactEmail · @(Model.ContactPhone ?? "—")</span></div>
+                <div class="kv"><span class="k">Cabin class</span><span class="v">@Model.CabinClass (@Model.PassengerCount pax)</span></div>
+                <div class="kv"><span class="k">Total price</span><span class="v">@Money(Model.TotalPrice)</span></div>
+                <div class="kv"><span class="k">Payment</span><span class="v">@Model.PaymentRef · card •••• @(Model.CardLast4 ?? "—")</span></div>
+                <div class="kv"><span class="k">Booked at</span><span class="v">@Model.CreatedAt.ToString("dd MMM yyyy, HH:mm") (UTC)</span></div>
+                @if (Model.VerifiedAt != null)
+                {
+                    <div class="kv"><span class="k">Verified at</span><span class="v">@Model.VerifiedAt.Value.ToString("dd MMM, HH:mm")</span></div>
+                }
+                @if (Model.RejectionReason != null)
+                {
+                    <div class="kv"><span class="k">Rejection reason</span><span class="v text-danger">@Model.RejectionReason</span></div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-people"></i> Passengers &amp; seats</span></div>
+            <table class="table table-clean">
+                <thead><tr><th>#</th><th>Name</th><th>ID</th><th>Age / Gender</th><th>Seat</th></tr></thead>
+                <tbody>
+                    @foreach (var p in Model.Passengers.OrderBy(p => p.SeatNumber))
+                    {
+                        <tr>
+                            <td>@(Model.Passengers.OrderBy(x => x.SeatNumber).ToList().IndexOf(p) + 1)</td>
+                            <td class="table-title">@p.FullName</td>
+                            <td>@p.IdType ****@p.IdNumber[^Math.Min(4, p.IdNumber.Length)..]</td>
+                            <td>@p.Age · @p.Gender</td>
+                            <td><span class="seat-chip">@(p.SeatNumber ?? "released")</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header"><span><i class="bi bi-gear"></i> Actions</span></div>
+            <div class="card-body">
+                @if (Model.Status == BookingStatus.Pending)
+                {
+                    <form asp-action="Approve" asp-route-id="@Model.Id" method="post" class="mb-3">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-accent w-100 py-2"><i class="bi bi-patch-check"></i> Approve &amp; confirm booking</button>
+                    </form>
+                    <form asp-action="Reject" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <label class="form-label">Reject reason</label>
+                        <input name="reason" class="form-control mb-2" placeholder="e.g. payment could not be verified" />
+                        <button class="btn btn-soft w-100 text-danger"><i class="bi bi-x-octagon"></i> Reject booking (release seats)</button>
+                    </form>
+                }
+                else if (Model.IsActive)
+                {
+                    <form asp-action="CancelBooking" asp-route-id="@Model.Id" method="post"
+                          onsubmit="return confirm('Cancel this booking and release the seats?');">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-soft w-100 text-danger py-2"><i class="bi bi-slash-circle"></i> Cancel booking &amp; release seats</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-muted-2 mb-0">This booking is closed — no actions available.</p>
+                }
+
+                <a class="btn btn-soft w-100 mt-2" asp-controller="Booking" asp-action="Ticket" asp-route-id="@Model.Id">
+                    <i class="bi bi-ticket-detail"></i> View e-ticket
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-clock-history"></i> Activity</span></div>
+            <div class="card-body">
+                <ul class="timeline">
+                    @foreach (var l in logs)
+                    {
+                        <li class="done">
+                            <div class="t-action">@l.Action</div>
+                            <div class="t-detail">@l.Details</div>
+                            <div class="t-time">@l.CreatedAt.ToString("dd MMM yyyy, HH:mm") · @(l.User?.FullName ?? "System")</div>
+                        </li>
+                    }
+                    @if (!logs.Any()) { <li><div class="t-detail">No activity recorded.</div></li> }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

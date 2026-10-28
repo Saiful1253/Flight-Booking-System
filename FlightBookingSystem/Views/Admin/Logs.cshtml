@@ -1,0 +1,44 @@
+@model List<FlightBookingSystem.Models.ActivityLog>
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Activity logs";
+}
+
+<div class="filter-bar mb-3">
+    <form asp-action="Logs" method="get" class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">Search activity</label>
+            <input name="q" value="@ViewBag.Query" class="form-control" placeholder="Booking Verified, PNR, flight number..." />
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-accent"><i class="bi bi-search"></i> Search</button>
+            <a class="btn btn-soft" asp-action="Logs">Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header"><span><i class="bi bi-clock-history"></i> Last @Model.Count events</span></div>
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-clock-history"></i><p class="mb-0">No activity matches your search.</p></div>
+    }
+    else
+    {
+        <table class="table table-clean">
+            <thead><tr><th>When (UTC)</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead>
+            <tbody>
+                @foreach (var l in Model)
+                {
+                    <tr>
+                        <td class="text-nowrap">@l.CreatedAt.ToString("dd MMM yyyy")<div class="table-sub">@l.CreatedAt.ToString("HH:mm:ss")</div></td>
+                        <td>@(l.User?.FullName ?? "System") <div class="table-sub">@(l.User?.Role.ToString() ?? "")</div></td>
+                        <td class="table-title">@l.Action</td>
+                        <td>@l.EntityType @(l.EntityId != null ? $"#{l.EntityId}" : "")</td>
+                        <td class="table-sub">@l.Details</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -1,0 +1,125 @@
+@model FlightBookingSystem.ViewModels.FlightSearchViewModel
+@{
+    ViewData["Title"] = "Search flights";
+    var airportItems = new SelectList(Model.Airports.Select(a => new { a.Id, Label = $"{a.Code} — {a.City}" }), "Id", "Label");
+}
+<section class="hero">
+    <div class="hero-inner">
+        <h1>Fly across Bangladesh &amp; beyond</h1>
+        <p>Search live flights, pick your seat and get an instant e-ticket. Admin verifies every booking so you always board with confidence.</p>
+    </div>
+</section>
+
+<div class="container">
+    <div class="search-card">
+        <form asp-controller="Home" asp-action="Search" method="get">
+            <div class="search-grid">
+                <div>
+                    <label class="form-label">From</label>
+                    <select asp-for="FromAirportId" asp-items="airportItems" class="form-select">
+                        <option value="">Select departure city</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">To</label>
+                    <select asp-for="ToAirportId" asp-items="airportItems" class="form-select">
+                        <option value="">Select arrival city</option>
+                    </select>
+                    <span asp-validation-for="ToAirportId" class="text-danger small"></span>
+                </div>
+                <div>
+                    <label class="form-label">Departure</label>
+                    <input asp-for="Date" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                </div>
+                <div>
+                    <label class="form-label">Passengers</label>
+                    <select asp-for="Passengers" class="form-select">
+                        @for (var i = 1; i <= 9; i++)
+                        {
+                            <option value="@i">@i @(i == 1 ? "pax" : "pax")</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Cabin class</label>
+                    <select asp-for="CabinClass" asp-items="Html.GetEnumSelectList<CabinClass>()" class="form-select"></select>
+                </div>
+                <div>
+                    <button type="submit" class="btn-search w-100"><i class="bi bi-search"></i> Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<section class="section">
+    <h2 class="section-title">Popular destinations</h2>
+    <p class="section-sub">Tap a destination to fill the search box.</p>
+    <div class="dest-grid">
+        <a class="dest-card" href="#" data-code="CGP" style="background-image:url('/images/dest-dhaka.jpg')">
+            <span class="d-copy"><span class="d-city">Chattogram</span><span class="d-meta">Flights from BDT 4,800</span></span>
+        </a>
+        <a class="dest-card" href="#" data-code="CXB" style="background-image:url('/images/dest-coxsbazar.jpg')">
+            <span class="d-copy"><span class="d-city">Cox's Bazar</span><span class="d-meta">Flights from BDT 6,700</span></span>
+        </a>
+        <a class="dest-card" href="#" data-code="ZYL" style="background-image:url('/images/dest-sylhet.jpg')">
+            <span class="d-copy"><span class="d-city">Sylhet</span><span class="d-meta">Flights from BDT 5,400</span></span>
+        </a>
+        <a class="dest-card" href="#" data-code="DXB" style="background-image:url('/images/dest-dubai.jpg')">
+            <span class="d-copy"><span class="d-city">Dubai</span><span class="d-meta">Flights from BDT 34,500</span></span>
+        </a>
+        <a class="dest-card" href="#" data-code="BKK" style="background-image:url('/images/dest-bangkok.jpg')">
+            <span class="d-copy"><span class="d-city">Bangkok</span><span class="d-meta">Flights from BDT 27,800</span></span>
+        </a>
+        <a class="dest-card" href="#" data-code="KUL" style="background-image:url('/images/dest-kl.jpg')">
+            <span class="d-copy"><span class="d-city">Kuala Lumpur</span><span class="d-meta">Flights from BDT 24,900</span></span>
+        </a>
+    </div>
+</section>
+
+<section class="section" style="padding-top:0">
+    <div class="why-grid">
+        <div class="why-card">
+            <div class="w-icon"><i class="bi bi-tags"></i></div>
+            <h5>Best fares, no hidden fees</h5>
+            <p>Transparent pricing across every airline in our inventory — what you see is what you pay.</p>
+        </div>
+        <div class="why-card">
+            <div class="w-icon"><i class="bi bi-upc-scan"></i></div>
+            <h5>Instant e-ticket &amp; PNR</h5>
+            <p>Every booking gets a unique PNR with assigned seats and a printable e-ticket.</p>
+        </div>
+        <div class="why-card">
+            <div class="w-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+            <h5>Free cancellation</h5>
+            <p>Plans changed? Cancel before departure and your seats go straight back to inventory.</p>
+        </div>
+        <div class="why-card">
+            <div class="w-icon"><i class="bi bi-shield-check"></i></div>
+            <h5>Verified bookings</h5>
+            <p>Our admin team verifies every booking and instantly flags duplicate reservations.</p>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.dest-card').forEach(function (card) {
+            card.addEventListener('click', function (e) {
+                e.preventDefault();
+                var code = card.getAttribute('data-code');
+                var toSelect = document.querySelector('select[name="ToAirportId"]');
+                Array.from(toSelect.options).forEach(function (opt) {
+                    if (opt.text.indexOf(code) === 0) toSelect.value = opt.value;
+                });
+                var from = document.querySelector('select[name="FromAirportId"]');
+                if (!from.value) {
+                    Array.from(from.options).forEach(function (opt) {
+                        if (opt.text.indexOf('Dhaka') === 0) from.value = opt.value;
+                    });
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    </script>
+}

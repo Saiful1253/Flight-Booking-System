@@ -1,0 +1,121 @@
+@model FlightBookingSystem.ViewModels.ClientDashboardViewModel
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "My dashboard";
+    string Money(decimal v) => $"BDT {v:N0}";
+    string Dur(int m) => m >= 60 ? $"{m / 60}h {m % 60:D2}m" : $"{m}m";
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <span class="stat-icon"><i class="bi bi-ticket-perforated"></i></span>
+            <div><div class="stat-value">@Model.TotalBookings</div><div class="stat-label">Total bookings</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-green">
+            <span class="stat-icon"><i class="bi bi-airplane-departure"></i></span>
+            <div><div class="stat-value">@Model.UpcomingTrips</div><div class="stat-label">Upcoming trips</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-amber">
+            <span class="stat-icon"><i class="bi bi-hourglass-split"></i></span>
+            <div>
+                <div class="stat-value">@Model.Upcoming.Count(b => b.Status == BookingStatus.Pending)</div>
+                <div class="stat-label">Awaiting verification</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card tone-blue">
+            <span class="stat-icon"><i class="bi bi-slash-circle"></i></span>
+            <div><div class="stat-value">@Model.CancelledCount</div><div class="stat-label">Cancelled</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Upcoming trips</h5>
+    <a class="btn btn-accent btn-sm" asp-controller="Home" asp-action="Index"><i class="bi bi-search"></i> Book a new flight</a>
+</div>
+
+@if (!Model.Upcoming.Any())
+{
+    <div class="card mb-4">
+        <div class="empty-state">
+            <i class="bi bi-airplane"></i>
+            <h5>No upcoming trips</h5>
+            <p>Search a route and book your first flight.</p>
+            <a class="btn btn-accent btn-sm" asp-controller="Home" asp-action="Index">Search flights</a>
+        </div>
+    </div>
+}
+else
+{
+    @foreach (var b in Model.Upcoming)
+    {
+        var f = b.Flight!;
+        <div class="flight-card">
+            <div class="fc-strip" style="background:@f.Airline!.Color"></div>
+            <div class="fc-airline">
+                <div class="al-name">@f.Airline.Name</div>
+                <div class="al-meta">PNR <b>@b.Pnr</b></div>
+                <span class="flight-no"><i class="bi bi-airplane"></i> @f.FlightNumber</span>
+            </div>
+            <div class="fc-route">
+                <div>
+                    <div class="fc-time">@f.DepartureAt.ToString("HH:mm")</div>
+                    <div class="fc-code">@f.DepartureAirport!.Code</div>
+                    <div class="fc-city">@f.DepartureAt.ToString("ddd, dd MMM")</div>
+                </div>
+                <div class="fc-line">
+                    <div class="dur">@Dur(f.DurationMinutes)</div>
+                    <div class="track"><i class="bi bi-airplane"></i></div>
+                    <div class="fc-stop">@b.PassengerCount pax · @b.CabinClass</div>
+                </div>
+                <div class="text-end">
+                    <div class="fc-time">@f.ArrivalAt.ToString("HH:mm")</div>
+                    <div class="fc-code">@f.ArrivalAirport!.Code</div>
+                    <div class="fc-city">@f.ArrivalAirport.City</div>
+                </div>
+            </div>
+            <div class="fc-price">
+                <partial name="_BookingBadge" model="b.Status" />
+                <div class="p">@Money(b.TotalPrice)</div>
+                <a class="btn btn-soft btn-sm" asp-controller="Booking" asp-action="Ticket" asp-route-id="@b.Id">
+                    <i class="bi bi-ticket-detail"></i> E-ticket
+                </a>
+            </div>
+        </div>
+    }
+}
+
+<h5 class="mb-3">Recent activity</h5>
+<div class="card">
+    <table class="table table-clean">
+        <thead>
+            <tr>
+                <th>PNR</th><th>Route</th><th>Departure</th><th>Class</th><th>Total</th><th>Status</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var b in Model.Recent)
+            {
+                var f = b.Flight!;
+                <tr>
+                    <td class="table-title">@b.Pnr</td>
+                    <td>@f.DepartureAirport!.Code → @f.ArrivalAirport!.Code <div class="table-sub">@f.Airline!.Name</div></td>
+                    <td>@f.DepartureAt.ToString("dd MMM, HH:mm")</td>
+                    <td><span class="cls-chip @b.CabinClass.ToString().ToLower()">@b.CabinClass</span></td>
+                    <td class="fw-bold">@Money(b.TotalPrice)</td>
+                    <td><partial name="_BookingBadge" model="b.Status" /></td>
+                    <td class="text-end">
+                        <a class="btn btn-soft btn-xs" asp-controller="Booking" asp-action="Ticket" asp-route-id="@b.Id">View</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

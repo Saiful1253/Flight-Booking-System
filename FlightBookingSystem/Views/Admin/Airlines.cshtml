@@ -1,0 +1,88 @@
+@model List<FlightBookingSystem.Models.Airline>
+@{
+    Layout = "_PanelLayout";
+    ViewData["Title"] = "Airlines";
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-plus-lg"></i> Add airline</span></div>
+            <div class="card-body">
+                <form asp-action="AirlineSave" method="post" class="row g-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" value="0" />
+                    <div class="col-12">
+                        <label class="form-label">Name</label>
+                        <input name="Name" class="form-control" placeholder="e.g. Air Bangladesh" required />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Code (3 letters)</label>
+                        <input name="Code" class="form-control" maxlength="3" placeholder="BG" required />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Brand colour</label>
+                        <input name="Color" class="form-control" type="color" value="#0284c7" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Contact email</label>
+                        <input name="ContactEmail" type="email" class="form-control" placeholder="info@airline.com" />
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-accent w-100"><i class="bi bi-check2"></i> Add airline</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-buildings"></i> All airlines (@Model.Count)</span></div>
+            @if (!Model.Any())
+            {
+                <div class="empty-state"><i class="bi bi-buildings"></i><p class="mb-0">No airlines yet.</p></div>
+            }
+            else
+            {
+                <table class="table table-clean">
+                    <thead><tr><th>Name</th><th>Code</th><th>Colour</th><th>Contact</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        @foreach (var a in Model)
+                        {
+                            <tr>
+                                <td colspan="5" class="p-2">
+                                    <form asp-action="AirlineSave" method="post" class="row g-2 align-items-end">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="Id" value="@a.Id" />
+                                        <div class="col-12 col-md-4"><label class="form-label small">Name</label>
+                                            <input name="Name" value="@a.Name" class="form-control form-control-sm" required /></div>
+                                        <div class="col-6 col-md-2"><label class="form-label small">Code</label>
+                                            <input name="Code" value="@a.Code" maxlength="3" class="form-control form-control-sm" required /></div>
+                                        <div class="col-6 col-md-2"><label class="form-label small">Colour</label>
+                                            <input name="Color" value="@a.Color" type="color" class="form-control form-control-sm" /></div>
+                                        <div class="col-12 col-md-2"><label class="form-label small">Email</label>
+                                            <input name="ContactEmail" value="@a.ContactEmail" class="form-control form-control-sm" /></div>
+                                        <div class="col-12 col-md-2 text-end text-nowrap">
+                                            <button class="btn btn-soft btn-xs"><i class="bi bi-check2"></i> Save</button>
+                                            <button type="button" class="btn btn-soft btn-xs" onclick="toggleColor(this)"><i class="bi bi-eyedropper"></i></button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleColor(btn) {
+            var input = btn.closest('form').querySelector('input[type="color"]');
+            if (input) input.click();
+        }
+    </script>
+}
