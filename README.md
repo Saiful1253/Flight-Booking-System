@@ -5,6 +5,17 @@ Three-part design: public booking site + **Client panel** + **Admin panel**.
 
 ![Stack](https://img.shields.io/badge/.NET-8.0-512BD4) ![DB](https://img.shields.io/badge/PostgreSQL-17-336791)
 
+## 🌐 Live Demo
+
+**https://flight-booking-system-cmvt.onrender.com**
+
+> First visit may take ~50 seconds (free tier instance wakes up on demand).
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@flylocal.local` | `Admin@123` |
+| Client | `client@flylocal.local` | `Client@123` |
+
 ---
 
 ## Features
